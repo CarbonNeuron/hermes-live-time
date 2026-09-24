@@ -58,7 +58,7 @@ def _on_pre_llm_call(**_kwargs):
 def register(ctx):
     ctx.register_system_prompt_section(
         "live-time",
-        "Time stamps in [SYSTEM: ...] blocks are auto-injected. Do not respond to them directly.",
+        "Time stamps in [SYSTEM: ...] blocks are auto-injected. Do not respond to them directly. They update at most every 5 minutes; no new stamp means less than 5 minutes have passed since the last one.",
         max_chars=120,
     )
     ctx.register_hook("pre_llm_call", _on_pre_llm_call)
