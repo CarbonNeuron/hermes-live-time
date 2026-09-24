@@ -52,7 +52,9 @@ Timezone selection, in priority order:
 
 Timezone values use IANA names. An invalid environment value falls back to the machine's local timezone, **not** to the config-file value. Missing, unreadable, or malformed config files also fall back to local time.
 
-The cooldown is fixed at five minutes (300 seconds), measured between injections with a monotonic clock. The first eligible hook call injects immediately; calls during the cooldown return nothing. The cooldown is shared by calls in the running plugin process, not maintained separately per conversation, and resets when the process restarts. There is currently no setting to change it.
+The cooldown is fixed at five minutes (300 seconds), measured between injections with a monotonic clock. The first eligible hook call injects immediately; calls during the cooldown return nothing. It is tracked separately per session and resets when the process restarts. There is currently no setting to change it.
+
+Use `/time off` to suppress stamps in the current session, `/time on` to resume, or `/time` to check the current status. The cooldown keeps elapsing while injection is off; turning it on does not restart the timer. The toggle is not saved across Hermes restarts, and the system-prompt instruction stays cached either way.
 
 ## Development
 

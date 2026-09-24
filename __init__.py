@@ -8,12 +8,14 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import yaml
 
+from gateway.session_context import get_session_env
 from hermes_constants import get_hermes_home
 
 
 _WEEKDAYS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 _COOLDOWN_SECONDS = 5 * 60
 _last_injection_by_session = {}
+_disabled_sessions = set()
 _injection_lock = threading.Lock()
 
 
@@ -42,9 +44,11 @@ def _current_time():
 
 
 def _on_pre_llm_call(**_kwargs):
-    session_id = _kwargs.get("session_id", "")
+    session_id = get_session_env("HERMES_SESSION_KEY") or _kwargs.get("session_id", "")
 
     with _injection_lock:
+        if session_id in _disabled_sessions:
+            return None
         now_monotonic = time.monotonic()
         last = _last_injection_by_session.get(session_id)
         if last is not None and now_monotonic - last < _COOLDOWN_SECONDS:
@@ -55,6 +59,20 @@ def _on_pre_llm_call(**_kwargs):
     return {"context": f"[SYSTEM: Now: {now:%Y-%m-%d %H:%M} {_WEEKDAYS[now.weekday()]}]"}
 
 
+def _handle_time(raw_args):
+    session_id = get_session_env("HERMES_SESSION_KEY") or get_session_env("HERMES_SESSION_ID")
+    command = raw_args.strip().lower()
+    with _injection_lock:
+        if command == "off":
+            _disabled_sessions.add(session_id)
+        elif command == "on":
+            _disabled_sessions.discard(session_id)
+        elif command:
+            return "Usage: /time [on|off]"
+        status = "off" if session_id in _disabled_sessions else "on"
+    return f"Time injection is {status} for this session"
+
+
 def register(ctx):
     ctx.register_system_prompt_section(
         "live-time",
@@ -62,3 +80,4 @@ def register(ctx):
         max_chars=120,
     )
     ctx.register_hook("pre_llm_call", _on_pre_llm_call)
+    ctx.register_command("time", _handle_time, description="Toggle time injection", args_hint="<on|off>")
