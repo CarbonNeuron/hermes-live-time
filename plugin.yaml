@@ -1,6 +1,6 @@
 name: live-time
 version: 1.0.0
 description: "Compact live time injection — appends current time to user messages every 5 minutes."
-author: "Wolfie"
+author: "CarbonNeuron"
 provides_hooks:
   - pre_llm_call
