@@ -13,7 +13,7 @@ from hermes_constants import get_hermes_home
 
 _WEEKDAYS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 _COOLDOWN_SECONDS = 5 * 60
-_last_injection_at = None
+_last_injection_by_session = {}
 _injection_lock = threading.Lock()
 
 
@@ -42,14 +42,15 @@ def _current_time():
 
 
 def _on_pre_llm_call(**_kwargs):
-    global _last_injection_at
+    session_id = _kwargs.get("session_id", "")
 
     with _injection_lock:
         now_monotonic = time.monotonic()
-        if _last_injection_at is not None and now_monotonic - _last_injection_at < _COOLDOWN_SECONDS:
+        last = _last_injection_by_session.get(session_id)
+        if last is not None and now_monotonic - last < _COOLDOWN_SECONDS:
             return None
         now = _current_time()
-        _last_injection_at = now_monotonic
+        _last_injection_by_session[session_id] = now_monotonic
 
     return {"context": f"[SYSTEM: Now: {now:%Y-%m-%d %H:%M} {_WEEKDAYS[now.weekday()]}]"}
 
