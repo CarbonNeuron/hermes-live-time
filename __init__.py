@@ -12,7 +12,7 @@ from gateway.session_context import get_session_env
 from hermes_constants import get_hermes_home
 
 
-_WEEKDAYS = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+_WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 _COOLDOWN_SECONDS = 5 * 60
 _last_injection_by_session = {}
 _disabled_sessions = set()
@@ -56,7 +56,7 @@ def _on_pre_llm_call(**_kwargs):
         now = _current_time()
         _last_injection_by_session[session_id] = now_monotonic
 
-    return {"context": f"[SYSTEM: Now: {now:%Y-%m-%d %H:%M} {_WEEKDAYS[now.weekday()]}]"}
+    return {"context": f"[SYSTEM: Now: {_WEEKDAYS[now.weekday()]}, {now:%B %d, %Y %I:%M %p}]"}
 
 
 def _handle_time(raw_args):

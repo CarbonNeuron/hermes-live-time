@@ -30,7 +30,7 @@ def test_injected_timestamp_format(plugin, monkeypatch):
     monkeypatch.setattr(plugin.time, "monotonic", lambda: 1000)
 
     assert plugin._on_pre_llm_call() == {
-        "context": "[SYSTEM: Now: 2026-09-24 14:30 Thu]"
+        "context": "[SYSTEM: Now: Thursday, September 24, 2026 02:30 PM]"
     }
 
 
@@ -39,7 +39,7 @@ def test_five_minute_cooldown(plugin, monkeypatch):
     ticks = iter((1000, 1299, 1300))
     monkeypatch.setattr(plugin.time, "monotonic", lambda: next(ticks))
 
-    injected = {"context": "[SYSTEM: Now: 2026-09-24 14:30 Thu]"}
+    injected = {"context": "[SYSTEM: Now: Thursday, September 24, 2026 02:30 PM]"}
     assert plugin._on_pre_llm_call() == injected
     assert plugin._on_pre_llm_call() is None
     assert plugin._on_pre_llm_call() == injected
@@ -108,7 +108,7 @@ def test_time_command_is_session_scoped_and_preserves_cooldown(plugin, monkeypat
     monkeypatch.setattr(plugin, "_current_time", lambda: datetime(2026, 9, 24, 14, 30))
     ticks = iter((1000, 1299, 1299, 1300))
     monkeypatch.setattr(plugin.time, "monotonic", lambda: next(ticks))
-    injected = {"context": "[SYSTEM: Now: 2026-09-24 14:30 Thu]"}
+    injected = {"context": "[SYSTEM: Now: Thursday, September 24, 2026 02:30 PM]"}
 
     assert plugin._handle_time("") == "Time injection is on for this session"
     assert plugin._on_pre_llm_call(session_id="a") == injected
